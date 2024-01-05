@@ -9,7 +9,19 @@ import {
 } from "./database.js";
 
 const data = "Votes 2021-2023.xlsx";
+const readData = async (path) => {
+  try {
+    const workbook = new excel.Workbook();
+    await workbook.xlsx.readFile(path);
+    console.log("File has been open successfully");
 
+    // Get the first worksheet
+    return workbook.getWorksheet(1);
+  } catch (error) {
+    console.error("Failed to read files", error.message);
+    throw error;
+  }
+};
 export const billsScript = async function () {
   // Create an Excel workbook
   const workbook = new excel.Workbook();
@@ -73,13 +85,7 @@ export const votingScript = async function () {
 
 const kmScript = async () => {};
 export const totalScript = async () => {
-  const workbook = new excel.Workbook();
-  await workbook.xlsx.readFile(data);
-
-  // Get the first worksheet
-  const worksheet = workbook.getWorksheet(1);
-
-  console.log("total rows: ", worksheet.rowCount);
+  const worksheet = await readData(data);
 
   // Iterate over rows starting from the second row (assuming the first row contains headers)
   for (let i = 2; i <= worksheet.rowCount; i++) {
@@ -104,9 +110,13 @@ export const totalScript = async () => {
     ) {
       continue;
     }
-    await insertBillRow(bill_id, name, isNum, vote_id);
-    await insertVoteForVotesRow(vote_id, bill_id, mk_id, vote);
-    await insertRawKnessetMemberRow(mk_id, fullName);
+    try {
+      await insertBillRow(bill_id, name, isNum, vote_id);
+      await insertVoteForVotesRow(vote_id, bill_id, mk_id, vote);
+      await insertRawKnessetMemberRow(mk_id, fullName);
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
   }
   console.log("Data import completed.");
 };
