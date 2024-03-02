@@ -11,9 +11,9 @@ import {
 const data = "Votes 2021-2023.xlsx";
 const readData = async (path) => {
   try {
+    console.log("Start Read Data")
     const workbook = new excel.Workbook();
     await workbook.xlsx.readFile(path);
-    console.log("File has been open successfully");
 
     // Get the first worksheet
     return workbook.getWorksheet(1);
@@ -59,7 +59,7 @@ export const billsScript = async function () {
 
 export const votingScript = async function () {
   // Create an Excel workbook
-  const workbook = new excel.Workbook();
+  const workbook = new excel.stream.Workbook();
   await workbook.xlsx.readFile(data);
 
   // Get the first worksheet
@@ -70,7 +70,7 @@ export const votingScript = async function () {
   // Iterate over rows starting from the second row (assuming the first row contains headers)
   for (let i = 2; i <= worksheet.rowCount; i++) {
     const row = worksheet.getRow(i);
-
+    y;
     // Extract data from the Excel row
     const vote_id = row.getCell(1).value;
     const mk_id = row.getCell(10).value;
@@ -85,6 +85,7 @@ export const votingScript = async function () {
 
 const kmScript = async () => {};
 export const totalScript = async () => {
+  console.log("Start Total Script");
   const worksheet = await readData(data);
 
   // Iterate over rows starting from the second row (assuming the first row contains headers)
