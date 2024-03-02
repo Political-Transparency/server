@@ -1,9 +1,6 @@
-import Bill from "../models/bill.js";
-import Vote from "../models/vote.js";
 import excel from "exceljs";
 import {
   insertBillRow,
-  insertKnessetMemberRow,
   insertRawKnessetMemberRow,
   insertVoteForVotesRow,
 } from "./database.js";
@@ -11,11 +8,9 @@ import {
 const data = "Votes 2021-2023.xlsx";
 const readData = async (path) => {
   try {
-    console.log("Start Read Data")
+    console.log("Start Read Data");
     const workbook = new excel.Workbook();
-    console.log("")
     await workbook.xlsx.readFile(path);
-
     // Get the first worksheet
     return workbook.getWorksheet(1);
   } catch (error) {
@@ -23,102 +18,64 @@ const readData = async (path) => {
     throw error;
   }
 };
-export const billsScript = async function () {
+export const billsScript = async function (row) {
   // Create an Excel workbook
-  const workbook = new excel.Workbook();
-  await workbook.xlsx.readFile(data);
+  console.log("Start Bills Scripts ......");
+  const id = row.getCell(3).value;
+  const name = row.getCell(8).value;
+  const knesset_num = row.getCell(5).value;
+  const vote_id = row.getCell(1).value;
 
-  // Get the first worksheet
-  const worksheet = workbook.getWorksheet(1);
+  const isNum = Number.isInteger(knesset_num) ? knesset_num : 25;
 
-  console.log("total rows: ", worksheet.rowCount);
-
-  // Iterate over rows starting from the second row (assuming the first row contains headers)
-  for (let i = 2; i <= worksheet.rowCount; i++) {
-    const row = worksheet.getRow(i);
-
-    // Extract data from the Excel row
-    const id = row.getCell(3).value;
-    const name = row.getCell(8).value;
-    const knesset_num = row.getCell(5).value;
-    const isNum = Number.isInteger(knesset_num) ? knesset_num : 25;
-    const vote_id = row.getCell(1).value;
-    if (name === "NULL" || id === "NULL" || vote_id === "NULL") {
-      continue;
-    }
+  if (name !== "NULL" && id !== "NULL" && vote_id !== "NULL") {
     try {
       await insertBillRow(id, name, isNum, vote_id);
-      console.log(`Row ${i - 1} processed successfully.`);
     } catch (error) {
       console.error(`Error inserting row ${i - 1}:`, error);
       return;
     }
   }
-
-  console.log("Data import completed.");
 };
-
-export const votingScript = async function () {
+async function votingScript(row) {
   // Create an Excel workbook
-  const workbook = new excel.stream.Workbook();
-  await workbook.xlsx.readFile(data);
-
-  // Get the first worksheet
-  const worksheet = workbook.getWorksheet(1);
-
-  console.log("total rows: ", worksheet.rowCount);
-
-  // Iterate over rows starting from the second row (assuming the first row contains headers)
-  for (let i = 2; i <= worksheet.rowCount; i++) {
-    const row = worksheet.getRow(i);
-    y;
-    // Extract data from the Excel row
-    const vote_id = row.getCell(1).value;
-    const mk_id = row.getCell(10).value;
-    const bill_id = row.getCell(3).value;
-    const vote = row.getCell(12).value;
-    if (bill_id === "NULL" || mk_id === "NULL" || vote === "NULL") {
-      continue;
-    }
-    await insertVoteForVotesRow(bill_id, vote_id, mk_id, vote);
-  }
-};
-
-const kmScript = async () => {};
-export const totalScript = async () => {
-  console.log("Start Total Script");
-  const worksheet = await readData(data);
-
-  // Iterate over rows starting from the second row (assuming the first row contains headers)
-  for (let i = 2; i <= worksheet.rowCount; i++) {
-    const row = worksheet.getRow(i);
-    const bill_id = row.getCell(3).value;
-    const name = row.getCell(8).value;
-    const knesset_num = row.getCell(5).value;
-    const isNum = Number.isInteger(knesset_num) ? knesset_num : 25;
-    const vote_id = row.getCell(1).value;
-    const mk_id = row.getCell(10).value;
-    const vote = row.getCell(12).value;
-    const fullName = row.getCell(11).value;
-    if (
-      bill_id === "NULL" ||
-      mk_id === "NULL" ||
-      vote === "NULL" ||
-      name === "NULL" ||
-      isNum === "NULL" ||
-      vote_id === "NULL" ||
-      mk_id === "NULL" ||
-      fullName === "NULL"
-    ) {
-      continue;
-    }
+  console.log("Started Voting Script......");
+  // Extract data from the Excel row
+  const vote_id = row.getCell(1).value;
+  const mk_id = row.getCell(10).value;
+  const bill_id = row.getCell(3).value;
+  const vote = row.getCell(12).value;
+  if (bill_id !== null && mk_id !== "NULL" && vote !== "NULL") {
     try {
-      await insertBillRow(bill_id, name, isNum, vote_id);
-      // await insertVoteForVotesRow(vote_id, bill_id, mk_id, vote);
-      // await insertRawKnessetMemberRow(mk_id, fullName);
+      await insertVoteForVotesRow(bill_id, vote_id, mk_id, vote);
     } catch (error) {
-      console.error("Error:", error.message);
+      console.error("Failed to add vote to the db", error.message);
     }
   }
+}
+
+const kmScript = async (row) => {
+  const mk_id = row.getCell(10).value;
+  const full_name = row.getCell(11).value;
+  if (mk_id !== null && full_name != null)
+    try {
+      await insertRawKnessetMemberRow(mk_id, full_name);
+    } catch (error) {
+      console.error(`Failed to add knesset member to the database`);
+    }
+};
+export const totalScript = async () => {
+  const worksheet = await readData(data);
+  try {
+    for (let i = 2; i <= worksheet.rowCount; i++) {
+      const row = worksheet.getRow(i);
+      await billsScript(row);
+      await votingScript(row);
+      await kmScript(row);
+    }
+  } catch (error) {
+    console.error("Error in totalScript:", error.message);
+  }
+
   console.log("Data import completed.");
 };
