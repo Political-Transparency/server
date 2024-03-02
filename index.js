@@ -5,11 +5,7 @@ import helmet from "helmet";
 import bodyParser from "body-parser";
 import generalRoutes from "./routes/general.js";
 import morgan from "morgan";
-import {
-  votingScript,
-  billsScript,
-  totalScript,
-} from "./config/rowDataScript.js";
+import { totalScript } from "./config/rowDataScript.js";
 import { scriptStarter } from "./config/apiScript.js";
 import connection from "./config/connect.js";
 
@@ -39,8 +35,6 @@ const port = process.env.SERVER_PORT ?? 8080;
 app.listen(port, () => {
   connection.sync().then(() => {
     totalScript();
-    // votingScript();
-    // billsScript();
   });
   console.log(`Server started at port ${port}`);
 });
