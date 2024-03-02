@@ -13,6 +13,7 @@ const readData = async (path) => {
   try {
     console.log("Start Read Data")
     const workbook = new excel.Workbook();
+    console.log("")
     await workbook.xlsx.readFile(path);
 
     // Get the first worksheet
@@ -113,8 +114,8 @@ export const totalScript = async () => {
     }
     try {
       await insertBillRow(bill_id, name, isNum, vote_id);
-      await insertVoteForVotesRow(vote_id, bill_id, mk_id, vote);
-      await insertRawKnessetMemberRow(mk_id, fullName);
+      // await insertVoteForVotesRow(vote_id, bill_id, mk_id, vote);
+      // await insertRawKnessetMemberRow(mk_id, fullName);
     } catch (error) {
       console.error("Error:", error.message);
     }
