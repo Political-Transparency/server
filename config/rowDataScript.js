@@ -11,7 +11,6 @@ const readData = async (path) => {
     console.log("Start Read Data");
     const workbook = new excel.Workbook();
     await workbook.xlsx.readFile(path);
-    // Get the first worksheet
     return workbook.getWorksheet(1);
   } catch (error) {
     console.error("Failed to read files", error.message);
@@ -19,8 +18,6 @@ const readData = async (path) => {
   }
 };
 export const billsScript = async function (row) {
-  // Create an Excel workbook
-  console.log("Start Bills Scripts ......");
   const id = row.getCell(3).value;
   const name = row.getCell(8).value;
   const knesset_num = row.getCell(5).value;
@@ -38,9 +35,6 @@ export const billsScript = async function (row) {
   }
 };
 async function votingScript(row) {
-  // Create an Excel workbook
-  console.log("Started Voting Script......");
-  // Extract data from the Excel row
   const vote_id = row.getCell(1).value;
   const mk_id = row.getCell(10).value;
   const bill_id = row.getCell(3).value;
