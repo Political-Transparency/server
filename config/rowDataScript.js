@@ -70,8 +70,8 @@ export const totalScript = async () => {
     for (let i = 2; i <= worksheet.rowCount; i++) {
       const row = worksheet.getRow(i);
       await billsScript(row);
-      await votingScript(row);
       await kmScript(row);
+      await votingScript(row);
     }
   } catch (error) {
     console.error("Error in totalScript:", error.message);

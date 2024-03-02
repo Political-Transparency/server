@@ -212,15 +212,15 @@ export const isBillNotExistInDB = async (billID) => {
 };
 
 export const insertVoteForVotesRow = async (
-  voteID,
-  billID,
+  billId,
+  voteId,
   memberID,
   voteValue
 ) => {
   try {
     await Vote.create({
-      bill_id: billID,
-      vote_id: voteID,
+      bill_id: billId,
+      vote_id: voteId,
       mk_id: memberID,
       mk_vote: voteStringToInt(voteValue),
     });
